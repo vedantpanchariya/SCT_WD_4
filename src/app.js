@@ -9,7 +9,16 @@ import {
 } from "./project.js";
 
 let currentFilter = "All";
+let editingTodoId = null;
 
+
+const detailsDialog = document.getElementById("details-dialog");
+const closeDetails = document.getElementById("close-details");
+const detailsContent = document.getElementById("details-content");
+
+closeDetails.addEventListener("click", () => {
+    detailsDialog.close();
+});
 
 const container = document.getElementById("container");
 const dialog = document.querySelector("dialog");
@@ -58,9 +67,22 @@ function handleTodo(){
     const description = document.getElementById("description").value;
     const date = document.getElementById("date").value;
 
-    const newTodo = createTask(title,description,date);
-    addTodo(newTodo);
-    
+    if(editingTodoId) {
+        // Update existing todo
+        const todos = filterTodo("All");
+        const todo = todos.find(t => t.id == editingTodoId);
+        if(todo) {
+            todo.title = title;
+            todo.description = description;
+            todo.dueDate = date;
+        }
+        editingTodoId = null;
+    } else {
+        // Create new todo
+        const newTodo = createTask(title, description, date);
+        addTodo(newTodo);
+    }
+
     formreset();
     displayTodo();
 }
@@ -86,32 +108,57 @@ function displayTodo(){
                 <button data-id = "${todo.id}" class = "delete-btn"><ion-icon name="trash-sharp"></ion-icon></button>
 
                 <button data-id = "${todo.id}" class = "edit-btn"><ion-icon name="create-outline"></ion-icon></button>
+
+                <button data-id = "${todo.id}" class = "details-btn"><ion-icon name="information-circle-outline"></ion-icon></button>
+        
             </div>
         `
         container.appendChild(div);
     });
     attachListeners();    
 }
-
-const filtertabs = document.querySelectorAll(".filter-tab");
-filtertabs.forEach(tab => 
-    tab.addEventListener("click",(e)=>{
-        filtertabs.forEach(t => t.classList.remove("active"));
-        e.currentTarget.classList.add("active");
-
-        currentFilter = e.currentTarget.dataset.filter;
-        displayTodo();
-    })
-)
-
-
-displayTodo();
-
 function attachListeners(){
 
     const edit = document.querySelectorAll(".edit-btn");
     const deletebtn = document.querySelectorAll(".delete-btn");
     const completebtn = document.querySelectorAll(".complete-btn");
+    const detailsbtn = document.querySelectorAll(".details-btn");
+
+    detailsbtn.forEach(element => {
+        element.addEventListener("click", (e) => {
+            const id = e.currentTarget.dataset.id;
+            const todos = filterTodo("All");
+            const todo = todos.find(t => t.id == id);
+
+            if(todo) {
+                detailsContent.innerHTML = `
+                    <p><strong>Title:</strong> ${todo.title}</p>
+                    <p><strong>Description:</strong> ${todo.description}</p>
+                    <p><strong>Due Date:</strong> ${todo.dueDate}</p>
+                    <p><strong>Created Date:</strong> ${todo.createdDate || 'N/A'}</p>
+                    <p><strong>Status:</strong> ${todo.completed ? 'Completed' : 'Not Completed'}</p>
+                `;
+                detailsDialog.showModal();
+            }
+        });
+    });
+
+    edit.forEach(element => {
+        element.addEventListener("click", (e) => {
+                const id = e.currentTarget.dataset.id;
+                const todos = filterTodo("All");
+                const todo = todos.find(t => t.id == id);
+
+                if(todo) {
+                    document.getElementById("title").value = todo.title;
+                    document.getElementById("description").value = todo.description;
+                    document.getElementById("date").value = todo.dueDate;
+
+                    editingTodoId = id;
+                    showDialog();
+                }
+            });
+        });
 
     deletebtn.forEach( element =>{
         element.addEventListener("click",(e)=>{
@@ -129,3 +176,18 @@ function attachListeners(){
     });
     
 }
+
+const filtertabs = document.querySelectorAll(".filter-tab");
+filtertabs.forEach(tab => 
+    tab.addEventListener("click",(e)=>{
+        filtertabs.forEach(t => t.classList.remove("active"));
+        e.currentTarget.classList.add("active");
+
+        currentFilter = e.currentTarget.dataset.filter;
+        displayTodo();
+    })
+)
+
+displayTodo();
+
+
