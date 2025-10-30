@@ -43,11 +43,13 @@ submit.addEventListener("click",(e)=>{
     e.preventDefault();
     closeDialog();
     handleTodo();
+    formreset();
     
 });
 
 cancel.addEventListener("click",()=>{
     closeDialog();
+    formreset();
 });
 
 function formreset(){
@@ -59,6 +61,8 @@ function formreset(){
     title.value = "";
     description.value = "";
     date.value = "";
+
+    editingTodoId = null
 
 }
 
@@ -75,7 +79,7 @@ function handleTodo(){
             todo.title = title;
             todo.description = description;
             todo.dueDate = date;
-        }
+        }   
         editingTodoId = null;
     } else {
         // Create new todo
@@ -96,14 +100,17 @@ function displayTodo(){
 
         const div = document.createElement("div");
         div.classList.add("todo-card");
+        if(todo.completed) {
+        div.classList.add("completed");
+        }
         
         div.innerHTML = `
             
-            <h3> ${todo.title}</h3>
+            <h3 class="${todo.completed ? 'completed-text' : ''}">${todo.title}</h3>
             
             <p> ${todo.dueDate}</p>
             <div class = "actions">
-                <button data-id = "${todo.id}" class = "complete-btn">${todo.completed ? "Completed": "Complete"}</button>
+                <button data-id = "${todo.id}" class = "complete-btn ${todo.completed ? 'completed' : ''}">${todo.completed ? "Completed": "Complete"}</button>
 
                 <button data-id = "${todo.id}" class = "delete-btn"><ion-icon name="trash-sharp"></ion-icon></button>
 
@@ -135,7 +142,7 @@ function attachListeners(){
                     <p><strong>Title:</strong> ${todo.title}</p>
                     <p><strong>Description:</strong> ${todo.description}</p>
                     <p><strong>Due Date:</strong> ${todo.dueDate}</p>
-                    <p><strong>Created Date:</strong> ${todo.createdDate || 'N/A'}</p>
+                    <p><strong>Created Date:</strong> ${todo.createdAt || 'N/A'}</p>
                     <p><strong>Status:</strong> ${todo.completed ? 'Completed' : 'Not Completed'}</p>
                 `;
                 detailsDialog.showModal();
